@@ -1,7 +1,7 @@
 # Cmd
 Simpl console command parser
 
-
+TODO: add group item settings like if --local is set you can't use any another group or group is undependent 
 ```
 command: "backup",
 subcommands: ["one", "two"]
