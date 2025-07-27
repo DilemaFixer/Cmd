@@ -82,75 +82,97 @@ func (endPoint *EndPoint) Set(routePoint RoutePoint) error {
 }
 
 func (endPoint *EndPoint) ProcessAndPush(context ctx.Context, itr RoutingIterator) (RoutePoint, error) {
-	if err := validateOptions(endPoint, context); err != nil {
+	if err := endPoint.validateOptions(context); err != nil {
 		return nil, err
 	}
 
 	return endPoint, endPoint.handler(context)
 }
 
-func validateOptions(endPoint *EndPoint, context ctx.Context) error {
-
-	var throwError bool = false // change name to more readable
-
-	//TODO: refactor this part , move to new function
-	for _, value := range endPoint.groups.groups {
-		if context.IsFlagExist(value.Triger) {
-			if throwError {
-				return nil // DOTO: Throw error if flag must be lonely
-			}
-
-			throwError = value.RequiresSolitude
-			for _, option := range value.Options {
-				var isExist bool
-				if isExist = context.IsFlagExist(option.Name); isExist && option.Required {
-					return nil //TODO: throw error that requared flag is exist
-				}
-
-				if option.Type != Bool && isExist {
-					if !context.IsFlagHaveValue(option.Name) {
-						return nil // TODO throw error that invalid type or value exist
-					}
-				}
-			}
-		}
+func (endPoint *EndPoint) validateOptions(context ctx.Context) error {
+	if err := endPoint.validateGroups(context); err != nil {
+		return err
 	}
 
-	for _, option := range endPoint.options {
-		var isExist bool
-		if isExist = context.IsFlagExist(option.Name); !isExist && option.Required {
-			return nil // DOTO: throwing error
-		}
+	if err := endPoint.validateGlobalOptions(context); err != nil {
+		return err
+	}
 
-		if isExist && option.Type != Bool {
-			if !context.IsFlagHaveValue(option.Name) {
-				return nil //TODO: throwing err
+	return nil
+}
+
+func (endPoint *EndPoint) validateGroups(context ctx.Context) error {
+	var solitudeGroupExist bool = false
+	for _, group := range endPoint.groups.groups {
+		if context.IsFlagExist(group.Triger) {
+			if solitudeGroupExist {
+				return fmt.Errorf("Routing error: Prev. group requires solitude, can't handling %s group", group.Triger)
+			}
+
+			solitudeGroupExist = group.RequiresSolitude
+			if err := validateGroupOptions(group.Options, context); err != nil {
+				return nil
 			}
 		}
 	}
 	return nil
 }
 
-func optionTypeValidation(option Option, context ctx.Context, _type OptionType) error {
+func validateGroupOptions(options map[string]Option, context ctx.Context) error {
+	for _, option := range options {
+		var isExist bool
+		if isExist = context.IsFlagExist(option.Name); isExist && option.Required {
+			return fmt.Errorf("Routing error: Required %s flag not exist", option.Name)
+		}
+
+		if err := optionTypeValidation(option, context); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (endPoint *EndPoint) validateGlobalOptions(context ctx.Context) error {
+	for _, option := range endPoint.options {
+		var isExist bool
+		if isExist = context.IsFlagExist(option.Name); !isExist && option.Required {
+			return fmt.Errorf("Routing error: Required %s flag not exist", option.Name)
+		}
+
+		if err := optionTypeValidation(option, context); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func optionTypeValidation(option Option, context ctx.Context) error {
+	_type := option.Type
 	switch _type {
 	case Bool:
 		if context.IsFlagHaveValue(option.Name) {
-			return nil //TODO: thr err
+			return fmt.Errorf("Routing error: Option %s with type Bool have value, must look like --%s", option.Name, option.Name)
 		}
 	case String:
 		if !context.IsFlagHaveValue(option.Name) {
-			return nil //TODO: thr err
+			return fmt.Errorf("Routing error: Option %s with type String haven't value", option.Name)
 		}
 	case Int:
+		if !context.IsFlagHaveValue(option.Name) {
+			return fmt.Errorf("Routing error: Option %s with type Int haven't value", option.Name)
+		}
 		if _, error := context.GetValueAsInt(option.Name); error != nil {
-			return nil //TODO: format and return err
+			return fmt.Errorf("Routing error: Option %s with type Int have error \"%s\"", option.Name, error.Error())
 		}
 	case Float:
+		if !context.IsFlagHaveValue(option.Name) {
+			return fmt.Errorf("Routing error: Option %s with type Float haven't value", option.Name)
+		}
 		if _, error := context.GetValueAsFloat64(option.Name); error != nil {
-			return nil //TODO: format and return err
+			return fmt.Errorf("Routing error: Option %s with type Float have error \"%s\"", option.Name, error.Error())
 		}
 	default:
-		return nil //return undefind
+		return fmt.Errorf("Routing error: Undefine option type")
 	}
 
 	return nil
