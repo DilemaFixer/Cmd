@@ -33,3 +33,18 @@ func (r *Router) AddPoint(point RoutePoint) error {
 	r.points[point.GetName()] = point
 	return nil
 }
+func basicErrorHandler(err error, ctx ctx.Context) {
+	if err == nil {
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+	os.Exit(1)
+}
+
+func (r *Router) CustomErrorHandler(errorHandler func(error, ctx.Context)) {
+	if errorHandler == nil {
+		return
+	}
+	r.errorHandler = errorHandler
+}
