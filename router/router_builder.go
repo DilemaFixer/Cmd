@@ -33,7 +33,6 @@ func (r *Router) NewCmd(name string) *CmdWrapper {
 func (cmd *CmdWrapper) NewSub(name string) *CmdWrapper {
 	subCmd := NewCmdPoint(name)
 	cmd.cmd.AddSubCommand(name, subCmd)
-
 	return &CmdWrapper{
 		router: cmd.router,
 		cmd:    subCmd,
@@ -68,6 +67,7 @@ func (cmd *CmdWrapper) Build() *CmdWrapper {
 }
 
 func (cmd *CmdWrapper) Register() {
+	fmt.Println(cmd.cmd)
 	cmd.router.AddPoint(cmd.cmd)
 }
 
