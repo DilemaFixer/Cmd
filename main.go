@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	input := "command subcommand endpoint --bool_flag --value-flag=12"
+	input := "command subcommand sub endpoint --bool_flag --value-flag=12"
 	parsedInput, err := p.ParseInput(input)
 	if err != nil {
 		fmt.Println(err)
@@ -23,10 +23,12 @@ func main() {
 
 	router.NewCmd("command").
 		NewSub("subcommand").
+		NewSub("sub").
 		Endpoint("endpoint").
 		RequiredBool("bool_flag").
 		RequiredInt("value-flag").
 		Handler(test).
+		Build().
 		Build().
 		Build().
 		Register()
