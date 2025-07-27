@@ -1,6 +1,8 @@
 package router
 
 import (
+	"strings"
+
 	ctx "github.com/DilemaFixer/Cmd/context"
 )
 
@@ -48,4 +50,8 @@ func (itr RoutingIterator) CheckOnTarget(point RoutePoint) bool {
 		return true
 	}
 	return false
+}
+
+func (itr RoutingIterator) RouteToString() string {
+	return strings.Join(itr.rout, "/")
 }
