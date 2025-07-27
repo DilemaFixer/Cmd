@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+
 	ctx "github.com/DilemaFixer/Cmd/context"
 )
 
@@ -138,6 +140,10 @@ func (w *EndPointWrapper) SetGroupsCanBeIgnored(canBeIgnored bool) *EndPointWrap
 }
 
 func (w *EndPointWrapper) Build() *CmdWrapper {
+	if w.endpoint.handler == nil {
+		panic(fmt.Sprintf("Error router building: endpoint %s handler is not set", w.endpoint.name))
+	}
+
 	if w.parent == nil {
 		w.router.AddPoint(w.endpoint)
 		return nil
