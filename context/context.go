@@ -2,7 +2,6 @@ package context
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 
 	prs "github.com/DilemaFixer/Cmd/parser"
@@ -158,44 +157,4 @@ func (ctx *Context) GetSubcommandsAsArr() []string {
 	}
 
 	return subcommandsArr
-}
-
-func (ctx *Context) GetFlagsAsMap() map[string]string {
-	flagsMap := make(map[string]string)
-
-	for flag, value := range ctx.flags {
-		flagsMap[flag] = value
-	}
-
-	return flagsMap
-}
-
-func (ctx *Context) GetFlagsAsArr() []string {
-	flagsArr := make([]string, 0)
-
-	for flag, value := range ctx.flags {
-		flagsArr = append(flagsArr, fmt.Sprintf("%s=%s", flag, value))
-	}
-
-	return flagsArr
-}
-
-func (ctx *Context) GetFlagsKeysAsArr() []string {
-	flagsKeysArr := make([]string, 0)
-
-	for flag, _ := range ctx.flags {
-		flagsKeysArr = append(flagsKeysArr, flag)
-	}
-
-	return flagsKeysArr
-}
-
-func (ctx *Context) GetFlagsValuesAsArr() []string {
-	flagsValuesArr := make([]string, 0)
-
-	for _, value := range ctx.flags {
-		flagsValuesArr = append(flagsValuesArr, value)
-	}
-
-	return flagsValuesArr
 }

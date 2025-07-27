@@ -34,11 +34,11 @@ func (cmd *CmdPoint) Set(point RoutePoint) error {
 	return nil
 }
 
-func (cmd *CmdPoint) ProcessAndPush(context ctx.Context, itr RoutingIterator) (RoutePoint, error) {
+func (cmd *CmdPoint) ProcessAndPush(context ctx.Context, itr RoutingIterator) error {
 	//TODO: how i can paste routing iterator more beauti
 	next, exist := cmd.points[itr.Get()]
 	if !exist {
-		return nil, fmt.Errorf("Routing error: Point with name %s not found ", itr.Get())
+		return fmt.Errorf("Routing error: Point with name %s not found ", itr.Get())
 	}
 
 	return next.ProcessAndPush(context, itr)
