@@ -78,7 +78,7 @@ func (endPoint *EndPoint) GetName() string {
 }
 
 func (endPoint *EndPoint) Set(routePoint RoutePoint) error {
-	return fmt.Errorf("not implemented")
+	return fmt.Errorf("Can't set route point to EndPoint")
 }
 
 func (endPoint *EndPoint) ProcessAndPush(ctx.Context, RoutingIterator) error {
