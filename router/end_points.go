@@ -86,7 +86,7 @@ func (endPoint *EndPoint) ProcessAndPush(context ctx.Context, itr RoutingIterato
 		return nil, err
 	}
 
-	return endPoint, nil
+	return endPoint, endPoint.handler(context)
 }
 
 func validateOptions(endPoint *EndPoint, context ctx.Context) error {
