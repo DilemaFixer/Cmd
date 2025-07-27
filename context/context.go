@@ -135,3 +135,26 @@ func (ctx *Context) GetValueOrDefault(name, defaultValue string) string {
 	}
 	return defaultValue
 }
+
+func (ctx *Context) GetCommand() string {
+	return ctx.command
+}
+
+func (ctx *Context) IsCommandEqual(target string) bool {
+	return ctx.command == target
+}
+
+func (ctx *Context) IsSubcommandExist(target string) bool {
+	_, exist := ctx.subcommands[target]
+	return exist
+}
+
+func (ctx *Context) GetSubcommandsAsArr() []string {
+	subcommandsArr := make([]string, 0)
+
+	for subcommand, _ := range ctx.subcommands {
+		subcommandsArr = append(subcommandsArr, subcommand)
+	}
+
+	return subcommandsArr
+}
