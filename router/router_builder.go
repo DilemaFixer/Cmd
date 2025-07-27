@@ -141,7 +141,7 @@ func (w *EndPointWrapper) SetGroupsCanBeIgnored(canBeIgnored bool) *EndPointWrap
 
 func (w *EndPointWrapper) Build() *CmdWrapper {
 	if w.endpoint.handler == nil {
-		panic(fmt.Sprintf("Error router building: endpoint %s handler is not set", w.endpoint.name))
+		panic(fmt.Sprintf("Error router building: endpoint \"%s\" handler is not set", w.endpoint.name))
 	}
 
 	if w.parent == nil {
