@@ -12,9 +12,9 @@ type RoutingIterator struct {
 	rout []string
 }
 
-func NewRoutingIterator(context *ctx.Context) RoutingIterator {
+func NewRoutingIterator(context *ctx.Context) *RoutingIterator {
 	route, count := concatCommandAndSubcommands(context)
-	return RoutingIterator{
+	return &RoutingIterator{
 		i:    0,
 		maxI: count - 1,
 		rout: route,
@@ -25,7 +25,7 @@ func concatCommandAndSubcommands(context *ctx.Context) ([]string, int) {
 	command := context.GetCommand()
 	subcommands := context.GetSubcommandsAsArr()
 	count := len(subcommands) + 1
-	result := make([]string, count)
+	result := make([]string, 0)
 	result = append(result, command)
 	for _, value := range subcommands {
 		result = append(result, value)
@@ -33,11 +33,11 @@ func concatCommandAndSubcommands(context *ctx.Context) ([]string, int) {
 	return result, count
 }
 
-func (itr RoutingIterator) Get() string {
+func (itr *RoutingIterator) Get() string {
 	return itr.rout[itr.i]
 }
 
-func (itr RoutingIterator) Next() bool {
+func (itr *RoutingIterator) Next() bool {
 	if itr.maxI == itr.i {
 		return false
 	}
@@ -45,13 +45,13 @@ func (itr RoutingIterator) Next() bool {
 	return true
 }
 
-func (itr RoutingIterator) CheckOnTarget(point RoutePoint) bool {
+func (itr *RoutingIterator) CheckOnTarget(point RoutePoint) bool {
 	if itr.Get() == point.GetName() {
 		return true
 	}
 	return false
 }
 
-func (itr RoutingIterator) RouteToString() string {
+func (itr *RoutingIterator) RouteToString() string {
 	return strings.Join(itr.rout, "/")
 }

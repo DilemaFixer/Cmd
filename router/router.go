@@ -16,12 +16,13 @@ type Router struct {
 type RoutePoint interface {
 	GetName() string
 	Set(RoutePoint) error
-	ProcessAndPush(ctx.Context, RoutingIterator) (RoutePoint, error)
+	ProcessAndPush(ctx.Context, *RoutingIterator) (RoutePoint, error)
 }
 
 func NewRouter() *Router {
 	return &Router{
 		cache:        make(map[string]RoutePoint),
+		points:       make(map[string]RoutePoint),
 		errorHandler: basicErrorHandler,
 	}
 }
@@ -49,8 +50,9 @@ func (r *Router) CustomErrorHandler(errorHandler func(error, ctx.Context)) {
 	r.errorHandler = errorHandler
 }
 
-func (r *Router) Route(context ctx.Context, itr RoutingIterator) {
-	point, exist := r.points[itr.RouteToString()]
+func (r *Router) Route(context ctx.Context, itr *RoutingIterator) {
+	routeAsString := itr.RouteToString()
+	point, exist := r.cache[routeAsString]
 
 	if exist {
 		if _, err := point.ProcessAndPush(context, itr); err != nil {
@@ -60,15 +62,14 @@ func (r *Router) Route(context ctx.Context, itr RoutingIterator) {
 	}
 
 	point, exist = r.points[itr.Get()]
-
 	if !exist {
-		r.errorHandler(fmt.Errorf("Router routing error: try route to non-existent point"), context)
+		r.errorHandler(fmt.Errorf("Routing error: try route to non-existent point"), context)
 		return
 	}
-
+	itr.Next()
 	point, err := point.ProcessAndPush(context, itr)
 	if err != nil {
 		r.errorHandler(err, context)
 	}
-	r.cache[point.GetName()] = point
+	r.cache[routeAsString] = point
 }

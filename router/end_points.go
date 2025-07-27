@@ -81,7 +81,7 @@ func (endPoint *EndPoint) Set(routePoint RoutePoint) error {
 	return fmt.Errorf("Can't set route point to EndPoint")
 }
 
-func (endPoint *EndPoint) ProcessAndPush(context ctx.Context, itr RoutingIterator) (RoutePoint, error) {
+func (endPoint *EndPoint) ProcessAndPush(context ctx.Context, itr *RoutingIterator) (RoutePoint, error) {
 	if err := endPoint.validateOptions(context); err != nil {
 		return nil, err
 	}
