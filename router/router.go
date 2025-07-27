@@ -48,3 +48,27 @@ func (r *Router) CustomErrorHandler(errorHandler func(error, ctx.Context)) {
 	}
 	r.errorHandler = errorHandler
 }
+
+func (r *Router) Route(context ctx.Context, itr RoutingIterator) {
+	point, exist := r.points[itr.RouteToString()]
+
+	if exist {
+		if _, err := point.ProcessAndPush(context, itr); err != nil {
+			r.errorHandler(err, context)
+		}
+		return
+	}
+
+	point, exist = r.points[itr.Get()]
+
+	if !exist {
+		r.errorHandler(fmt.Errorf("Router routing error: try route to non-existent point"), context)
+		return
+	}
+
+	point, err := point.ProcessAndPush(context, itr)
+	if err != nil {
+		r.errorHandler(err, context)
+	}
+	r.cache[point.GetName()] = point
+}
