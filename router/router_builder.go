@@ -32,7 +32,7 @@ func (r *Router) NewCmd(name string) *CmdWrapper {
 
 func (cmd *CmdWrapper) NewSub(name string) *CmdWrapper {
 	subCmd := NewCmdPoint(name)
-	cmd.cmd.AddSubComman(name, subCmd)
+	cmd.cmd.AddSubCommand(name, subCmd)
 
 	return &CmdWrapper{
 		router: cmd.router,
@@ -43,7 +43,7 @@ func (cmd *CmdWrapper) NewSub(name string) *CmdWrapper {
 
 func (cmd *CmdWrapper) Endpoint(name string) *EndPointWrapper {
 	endpoint := NewEndPoint(name, nil)
-	cmd.cmd.AddSubComman(name, endpoint)
+	cmd.cmd.AddSubCommand(name, endpoint)
 
 	return &EndPointWrapper{
 		router:   cmd.router,
@@ -106,6 +106,10 @@ func (w *EndPointWrapper) BoolOption(name string) *EndPointWrapper {
 	return w.Option(name, Bool, false)
 }
 
+func (w *EndPointWrapper) RequiredBool(name string) *EndPointWrapper {
+	return w.Option(name, Bool, true)
+}
+
 func (w *EndPointWrapper) FloatOption(name string) *EndPointWrapper {
 	return w.Option(name, Float, false)
 }
@@ -147,6 +151,8 @@ func (w *EndPointWrapper) Build() *CmdWrapper {
 	if w.parent == nil {
 		w.router.AddPoint(w.endpoint)
 		return nil
+	} else {
+		w.parent.cmd.AddSubCommand(w.endpoint.name, w.endpoint)
 	}
 	return w.parent
 }
@@ -182,6 +188,10 @@ func (w *EndPointGroupWrapper) RequiredInt(name string) *EndPointGroupWrapper {
 
 func (w *EndPointGroupWrapper) BoolOption(name string) *EndPointGroupWrapper {
 	return w.GroupOption(name, Bool, false)
+}
+
+func (w *EndPointGroupWrapper) RequiredBool(name string) *EndPointGroupWrapper {
+	return w.GroupOption(name, Bool, true)
 }
 
 func (w *EndPointGroupWrapper) FloatOption(name string) *EndPointGroupWrapper {
