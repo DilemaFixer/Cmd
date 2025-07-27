@@ -13,7 +13,7 @@ type Context struct {
 	flags       map[string]string
 }
 
-func NewContext(input prs.ParserInput) *Context {
+func NewContext(input *prs.ParserInput) *Context {
 	ctx := &Context{
 		command:     input.Command,
 		subcommands: make(map[string]struct{}),
