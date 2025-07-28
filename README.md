@@ -1,34 +1,82 @@
 # Cmd
-Simpl console command parser
+
+A simple and powerful Go library for building command-line interfaces with hierarchical commands, option groups, and type-safe argument parsing.
+
+## Quick Start
+
+```bash
+go get github.com/DilemaFixer/Cmd
+```
+
+## Features
+
+- **Hierarchical Commands**: Build complex nested command structures like `docker container run`
+- **Type-Safe Options**: Automatic parsing and validation for strings, integers, floats, and booleans
+- **Option Groups**: Create mutually exclusive or related option groups
+- **Fluent API**: Clean, readable command definitions with method chaining
+- **Custom Error Handling**: Flexible error handling with custom handlers
+- **Context-Based**: Rich context object for accessing parsed arguments
+
+## Basic Usage
 
 Create a simple command with basic options:
 
 ```go
-router := NewRouter()
+package main
 
-router.Endpoint("server").
-    Description("Start HTTP server").
-    StringOption("host").
-    IntOption("port").
-    BoolOption("debug").
-    Handler(func(ctx Context) error {
-        host, _ := ctx.GetValueAsString("host")
-        port, _ := ctx.GetValueAsInt("port")
-        debug, _ := ctx.GetValueAsBool("debug")
-        
-        fmt.Printf("Starting server on %s:%d (debug: %v)\n", host, port, debug)
-        return nil
-    }).
-    Register()
+import (
+    "fmt"
+    ctx "github.com/DilemaFixer/Cmd/context"
+    p "github.com/DilemaFixer/Cmd/parser"
+    rtr "github.com/DilemaFixer/Cmd/router"
+)
 
-// Usage: myapp server --host=localhost --port=8080 --debug
+func main() {
+    // Parse command line input
+    input := "server --host=localhost --port=8080 --debug"
+    parsedInput, err := p.ParseInput(input)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    // Create context and router
+    context := ctx.NewContext(parsedInput)
+    iterator := rtr.NewRoutingIterator(context)
+    router := rtr.NewRouter()
+
+    // Define command
+    router.Endpoint("server").
+        Description("Start HTTP server").
+        StringOption("host").
+        IntOption("port").
+        BoolOption("debug").
+        Handler(serverHandler).
+        Register()
+
+    // Route and execute
+    router.Route(*context, iterator)
+}
+
+func serverHandler(ctx ctx.Context) error {
+    host, _ := ctx.GetValueAsString("host")
+    port, _ := ctx.GetValueAsInt("port")
+    debug, _ := ctx.GetValueAsBool("debug")
+    
+    fmt.Printf("Starting server on %s:%d (debug: %v)\n", host, port, debug)
+    return nil
+}
 ```
 
-### Hierarchical Commands
+**Usage**: `myapp server --host=localhost --port=8080 --debug`
+
+## Hierarchical Commands
 
 Build complex nested command structures:
 
 ```go
+router := rtr.NewRouter()
+
 router.NewCmd("docker").
     NewSub("container").
         Endpoint("run").
@@ -65,17 +113,21 @@ router.NewCmd("docker").
             Build().
         Build().
     Register()
-
-// Usage examples:
-// myapp docker container run --image=nginx --name=web --port=80 --detach
-// myapp docker container stop --container=web --force
-// myapp docker image build --dockerfile=Dockerfile --tag=myapp:latest
-// myapp docker image pull --image=alpine --tag=3.18
 ```
 
-### Option Groups
+**Usage examples**:
+```bash
+myapp docker container run --image=nginx --name=web --port=80 --detach
+myapp docker container stop --container=web --force
+myapp docker image build --dockerfile=Dockerfile --tag=myapp:latest
+myapp docker image pull --image=alpine --tag=3.18
+```
 
-Create mutually exclusive or related option groups:
+## Option Groups
+
+### Exclusive Groups
+
+Create mutually exclusive option groups where only one can be used:
 
 ```go
 router.Endpoint("backup").
@@ -108,71 +160,55 @@ router.Endpoint("backup").
     SetGroupsCanBeIgnored(false). // One group is required
     Handler(backupHandler).
     Register()
-
-// Valid usage:
-// myapp backup --verbose --local --path=/backup --compress
-// myapp backup --remote --host=backup.com --user=admin --key=id_rsa
-// myapp backup --s3 --bucket=my-backup --region=us-east-1
-
-// Invalid usage (will cause error):
-// myapp backup --local --path=/backup --remote --host=backup.com
 ```
 
-### Advanced Example with Multiple Groups
+**Valid usage**:
+```bash
+myapp backup --verbose --local --path=/backup --compress
+myapp backup --remote --host=backup.com --user=admin --key=id_rsa
+myapp backup --s3 --bucket=my-backup --region=us-east-1
+```
+
+**Invalid usage** (will cause error):
+```bash
+myapp backup --local --path=/backup --remote --host=backup.com
+```
+
+### Inclusive Groups
+
+Create related option groups that can be used together:
 
 ```go
-router.NewCmd("deploy").
-    Description("Deploy application to various environments").
+router.Endpoint("deploy").
+    Description("Deploy application").
+    RequiredString("environment").
     
-    NewSub("app").
-        Endpoint("start").
-            Description("Deploy and start application").
-            
-            // Basic options
-            RequiredString("environment").
-            BoolOption("force").
-            IntOption("timeout").
-            
-            // Deployment method (exclusive)
-            ExclusiveGroup("method", "--docker").
-                RequiredString("image").
-                StringOption("tag").
-                IntOption("replicas").
-            EndGroup().
-            
-            ExclusiveGroup("method", "--kubernetes").
-                RequiredString("namespace").
-                StringOption("config").
-                BoolOption("dry-run").
-            EndGroup().
-            
-            // Resource limits (inclusive group)
-            Group("resources", "--resources").
-                IntOption("memory").
-                IntOption("cpu").
-                StringOption("storage").
-            EndGroup().
-            
-            // Monitoring options (inclusive group)
-            Group("monitoring", "--monitoring").
-                BoolOption("metrics").
-                BoolOption("logging").
-                StringOption("alerts").
-            EndGroup().
-            
-            SetGroupsCanBeIgnored(true).
-            Handler(deployHandler).
-            Build().
-        Build().
+    // Resource limits (inclusive group)
+    Group("resources", "--resources").
+        IntOption("memory").
+        IntOption("cpu").
+        StringOption("storage").
+    EndGroup().
+    
+    // Monitoring options (inclusive group)
+    Group("monitoring", "--monitoring").
+        BoolOption("metrics").
+        BoolOption("logging").
+        StringOption("alerts").
+    EndGroup().
+    
+    Handler(deployHandler).
     Register()
+```
 
-// Usage:
-// myapp deploy app start --environment=prod --docker --image=myapp:v1.2.3 --replicas=3 --resources --memory=512 --cpu=2
+**Usage**:
+```bash
+myapp deploy --environment=prod --resources --memory=512 --cpu=2 --monitoring --metrics --logging
 ```
 
 ## Option Types
 
-The router supports various option types with automatic parsing:
+The library supports various option types with automatic parsing and validation:
 
 ```go
 router.Endpoint("config").
@@ -182,17 +218,17 @@ router.Endpoint("config").
     RequiredInt("port").         // --port=8080 (required)
     FloatOption("ratio").        // --ratio=3.14
     RequiredFloat("threshold").  // --threshold=0.95 (required)
-    BoolOption("enable").        // --enable (flag)
+    BoolOption("enable").        // --enable (flag, no value)
     Handler(configHandler).
     Register()
 ```
 
 ## Context Usage
 
-Access parsed options in your handlers:
+Access parsed options in your handlers with type safety:
 
 ```go
-func serverHandler(ctx Context) error {
+func serverHandler(ctx ctx.Context) error {
     // Check if option exists
     if !ctx.IsFlagExist("port") {
         return fmt.Errorf("port is required")
@@ -226,6 +262,108 @@ func serverHandler(ctx Context) error {
 }
 ```
 
+### Context Methods
+
+**Flag Checking**:
+- `IsFlagExist(name string) bool` - Check if flag was provided
+- `IsFlagHaveValue(name string) bool` - Check if flag has a value
+
+**Type-Safe Getters**:
+- `GetValueAsString(name string) (string, error)`
+- `GetValueAsInt(name string) (int, error)`
+- `GetValueAsInt32(name string) (int32, error)`
+- `GetValueAsInt64(name string) (int64, error)`
+- `GetValueAsFloat32(name string) (float32, error)`
+- `GetValueAsFloat64(name string) (float64, error)`
+- `GetValueAsBool(name string) (bool, error)`
+
+**Utility Methods**:
+- `GetValueOrDefault(name, defaultValue string) string`
+- `GetCommand() string`
+- `IsCommandEqual(target string) bool`
+- `IsSubcommandExist(target string) bool`
+- `GetSubcommandsAsArr() []string`
+- `GetFlagsAsMap() map[string]string`
+
+## Advanced Example
+
+Complete example with multiple nested commands and groups:
+
+```go
+package main
+
+import (
+    "fmt"
+    ctx "github.com/DilemaFixer/Cmd/context"
+    p "github.com/DilemaFixer/Cmd/parser"
+    rtr "github.com/DilemaFixer/Cmd/router"
+)
+
+func main() {
+    input := "service database migrate --direction=up --dry-run --db --host=localhost --port=5432"
+    parsedInput, _ := p.ParseInput(input)
+    context := ctx.NewContext(parsedInput)
+    iterator := rtr.NewRoutingIterator(context)
+    router := rtr.NewRouter()
+
+    router.NewCmd("service").
+        Description("Service management").
+        
+        NewSub("database").
+            Endpoint("migrate").
+                Description("Run database migrations").
+                RequiredString("direction").
+                BoolOption("dry-run").
+                
+                Group("connection", "--db").
+                    RequiredString("host").
+                    IntOption("port").
+                    StringOption("database").
+                EndGroup().
+                
+                Handler(migrateHandler).
+                Build().
+            Build().
+        Register()
+
+    router.Route(*context, iterator)
+}
+
+func migrateHandler(ctx ctx.Context) error {
+    direction, _ := ctx.GetValueAsString("direction")
+    dryRun, _ := ctx.GetValueAsBool("dry-run")
+    host, _ := ctx.GetValueAsString("host")
+    port, _ := ctx.GetValueAsInt("port")
+    
+    fmt.Printf("Migration: %s (dry-run: %v)\n", direction, dryRun)
+    fmt.Printf("Database: %s:%d\n", host, port)
+    
+    return nil
+}
+```
+
+## Error Handling
+
+The library provides detailed error information for invalid commands and supports custom error handlers:
+
+```go
+router := rtr.NewRouter()
+
+// Custom error handler
+router.CustomErrorHandler(func(err error, ctx ctx.Context) {
+    fmt.Printf("Command failed: %v\n", err)
+    fmt.Printf("Command: %s\n", ctx.GetCommand())
+    fmt.Printf("Flags: %v\n", ctx.GetFlagsAsMap())
+    os.Exit(1)
+})
+```
+
+**Common error types**:
+- Missing required options: `"missing required option --path"`
+- Invalid option values: `"invalid value for --port: expected integer, got 'abc'"`
+- Conflicting groups: `"conflicting groups: cannot use --kubernetes when --docker is active"`
+- Unknown commands: `"Point with name 'unknown' not found"`
+
 ## Method Chaining
 
 The fluent interface allows for clean, readable command definitions:
@@ -251,19 +389,4 @@ router.NewCmd("service").                    // Returns *CmdWrapper
             Build().                         // Returns *CmdWrapper (parent)
         Build().                             // Returns *CmdWrapper (grandparent)
     Register()                               // Registers with router
-```
-
-## Error Handling
-
-The router provides detailed error information for invalid commands:
-
-```go
-// Invalid command: myapp deploy --docker --kubernetes
-// Error: "conflicting groups: cannot use --kubernetes when --docker is active"
-
-// Invalid option: myapp server --port=abc
-// Error: "invalid value for --port: expected integer, got 'abc'"
-
-// Missing required option: myapp backup --local
-// Error: "missing required option --path for group 'local'"
 ```
