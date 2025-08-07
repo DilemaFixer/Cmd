@@ -1,5 +1,7 @@
 # Cmd
 
+TODO: In context struct add func MustExist(targetFlags []string) error , return err if flag is exist 
+
 A simple and powerful Go library for building command-line interfaces with hierarchical commands, option groups, and type-safe argument parsing.
 
 ## Quick Start
