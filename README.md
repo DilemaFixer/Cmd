@@ -1,3 +1,6 @@
+> [!WARNING]
+> The library is not in contributions ready state yet , test not exist
+
 # Cmd
 
 A simple and powerful Go library for building command-line interfaces with hierarchical commands, option groups, and type-safe argument parsing.
