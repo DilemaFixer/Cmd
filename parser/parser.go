@@ -67,10 +67,15 @@ func ParseInput(input string) (*ParserInput, error) {
 }
 
 func validateInput(input string) bool {
-	return input != "" && input != " "
+	input = strings.TrimSpace(input)
+	return input != ""
 }
 
 func cutInput(str string) ([]string, int) {
+	if strings.TrimSpace(str) == "" {
+		return nil, 0
+	}
+
 	parts := strings.Split(str, " ")
 	return parts, len(parts)
 }
@@ -87,7 +92,12 @@ func isFlag(str string) bool {
 }
 
 func parseFlag(str string) (InputFlag, error) {
-	str = str[2:]
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return InputFlag{}, fmt.Errorf("empty input string")
+	}
+
+	str = strings.TrimPrefix(str, "--")
 	var flag InputFlag
 	if strings.Contains(str, "=") {
 		strParts := strings.Split(str, "=")
