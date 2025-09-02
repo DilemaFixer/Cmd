@@ -38,11 +38,11 @@ func (itr *RoutingIterator) Get() string {
 }
 
 func (itr *RoutingIterator) Next() bool {
-	if itr.maxI == itr.i {
-		return false
+	if itr.i < itr.maxI {
+		itr.i++
+		return true
 	}
-	itr.i++
-	return true
+	return false
 }
 
 func (itr *RoutingIterator) CheckOnTarget(point RoutePoint) bool {
