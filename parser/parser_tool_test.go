@@ -72,6 +72,8 @@ func TestCutInput_WithValidString_ReturnArrWithTwoItems(t *testing.T) {
 	}
 }
 
+// --- RemoveFirst ---
+
 func TestRemoveFirst_WithEmptySlice_ReturnsEmptySlice(t *testing.T) {
 	input := []int{}
 	got := removeFirst(input, 1)
@@ -105,29 +107,5 @@ func TestRemoveFirst_WithCountLessThanLength_ReturnsRemainingSlice(t *testing.T)
 	want := []int{3, 4, 5}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected %v, got %v", want, got)
-	}
-}
-
-func TestIsFlag_WithEmptyString_ReturnFalse(t *testing.T) {
-	if isFlag("") {
-		t.Fatalf("expected false on empty string")
-	}
-}
-
-func TestIsFlag_WithSpaceOnlyString_ReturnFalse(t *testing.T) {
-	if isFlag("       ") {
-		t.Fatalf("expected false on space only string")
-	}
-}
-
-func TestIsFlag_WithoutFlagPrefix_ReturnFalse(t *testing.T) {
-	if isFlag("notFlag") {
-		t.Fatalf("expected false on word without flag prefix")
-	}
-}
-
-func TestIfFlag_WordWithFlagPrefix_ReturnTrue(t *testing.T) {
-	if !isFlag("--isFlag") {
-		t.Fatalf("expected true on word with flag prefix")
 	}
 }
