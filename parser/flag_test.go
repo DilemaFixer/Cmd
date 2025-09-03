@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -33,55 +32,26 @@ func TestHaveInputValue_WithInputFlag_ReturnsTrue(t *testing.T) {
 	}
 }
 
-func TestParseFlag_WithEmptyString_ReturnError(t *testing.T) {
-	if _, err := parseFlag(""); err != nil && err.Error() != "empty input string" {
-		t.Fatalf("unexpected error , get error: %s", err.Error())
+func TestIsFlag_WithEmptyString_ReturnFalse(t *testing.T) {
+	if isFlag("") {
+		t.Fatalf("expected false on empty string")
 	}
 }
 
-func TestParseFlag_WithEmptyString_ReturnsError(t *testing.T) {
-	_, err := parseFlag("")
-	if err == nil {
-		t.Fatal("expected error, got nil")
+func TestIsFlag_WithSpaceOnlyString_ReturnFalse(t *testing.T) {
+	if isFlag("       ") {
+		t.Fatalf("expected false on space only string")
 	}
 }
 
-func TestParseFlag_WithOnlyName_ReturnsFlagWithEmptyValue(t *testing.T) {
-	got, err := parseFlag("--verbose")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := InputFlag{Name: "verbose", Value: ""}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("expected %v, got %v", want, got)
+func TestIsFlag_WithoutFlagPrefix_ReturnFalse(t *testing.T) {
+	if isFlag("notFlag") {
+		t.Fatalf("expected false on word without flag prefix")
 	}
 }
 
-func TestParseFlag_WithNameAndValue_ReturnsFlagWithValue(t *testing.T) {
-	got, err := parseFlag("--threads=4")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := InputFlag{Name: "threads", Value: "4"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("expected %v, got %v", want, got)
-	}
-}
-
-func TestParseFlag_WithNameAndEmptyValue_ReturnsError(t *testing.T) {
-	_, err := parseFlag("--mode=")
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-}
-
-func TestParseFlag_WithoutPrefix_ReturnsFlag(t *testing.T) {
-	got, err := parseFlag("count=10")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	want := InputFlag{Name: "count", Value: "10"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("expected %v, got %v", want, got)
+func TestIfFlag_WordWithFlagPrefix_ReturnTrue(t *testing.T) {
+	if !isFlag("--isFlag") {
+		t.Fatalf("expected true on word with flag prefix")
 	}
 }
