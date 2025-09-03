@@ -14,7 +14,7 @@ type Context struct {
 	flags       map[string]string
 }
 
-func NewContext(input *prs.ParserInput) *Context {
+func NewContext(input *prs.ParsedInput) *Context {
 	ctx := &Context{
 		command:     input.Command,
 		subcommands: make(map[string]struct{}),
@@ -152,6 +152,10 @@ func (ctx *Context) IsSubcommandExist(target string) bool {
 
 func (ctx *Context) GetSubcommandsAsArr() []string {
 	subcommandsArr := make([]string, 0)
+
+	if len(ctx.subcommands) == 0 {
+		return subcommandsArr
+	}
 
 	for subcommand, _ := range ctx.subcommands {
 		subcommandsArr = append(subcommandsArr, subcommand)

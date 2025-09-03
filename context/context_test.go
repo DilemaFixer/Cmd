@@ -6,8 +6,8 @@ import (
 	prs "github.com/DilemaFixer/Cmd/parser"
 )
 
-func makeParserInput() *prs.ParserInput {
-	return &prs.ParserInput{
+func makeParserInput() *prs.ParsedInput {
+	return &prs.ParsedInput{
 		Command:     "run",
 		Subcommands: []string{"build", "deploy"},
 		InputFlags: []prs.InputFlag{
@@ -20,8 +20,8 @@ func makeParserInput() *prs.ParserInput {
 	}
 }
 
-func makeBrokenParserInput() *prs.ParserInput {
-	return &prs.ParserInput{
+func makeBrokenParserInput() *prs.ParsedInput {
+	return &prs.ParsedInput{
 		Command:     "",
 		Subcommands: []string{},
 		InputFlags: []prs.InputFlag{
