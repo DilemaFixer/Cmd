@@ -13,7 +13,7 @@ type RoutingIterator struct {
 }
 
 func NewRoutingIterator(context *ctx.Context) *RoutingIterator {
-	route, count := concatCommandAndSubcommands(context)
+	route, count := buildRoutingPath(context)
 	return &RoutingIterator{
 		i:    0,
 		maxI: count - 1,
@@ -21,7 +21,7 @@ func NewRoutingIterator(context *ctx.Context) *RoutingIterator {
 	}
 }
 
-func concatCommandAndSubcommands(context *ctx.Context) ([]string, int) {
+func buildRoutingPath(context *ctx.Context) ([]string, int) {
 	command := context.GetCommand()
 	subcommands := context.GetSubcommandsAsArr()
 	count := len(subcommands) + 1
