@@ -5,30 +5,7 @@ import (
 	"strings"
 )
 
-type ParserInput struct {
-	Command     string
-	Subcommands []string
-	InputFlags  []InputFlag
-}
-
-type InputFlag struct {
-	Name  string
-	Value string
-}
-
-func NewParserInput(command string) *ParserInput {
-	return &ParserInput{
-		Command:     command,
-		Subcommands: make([]string, 0),
-		InputFlags:  make([]InputFlag, 0),
-	}
-}
-
-func (f InputFlag) HaveInputValue() bool {
-	return f.Value != ""
-}
-
-func ParseInput(input string) (*ParserInput, error) {
+func ParseInput(input string) (*ParsedInput, error) {
 	input = strings.TrimSpace(input)
 	if !validateInput(input) {
 		return nil, fmt.Errorf("Parsing err: empty or only whitespace in string")
@@ -64,31 +41,6 @@ func ParseInput(input string) (*ParserInput, error) {
 	}
 
 	return result, nil
-}
-
-func validateInput(input string) bool {
-	input = strings.TrimSpace(input)
-	return input != ""
-}
-
-func cutInput(str string) ([]string, int) {
-	if strings.TrimSpace(str) == "" {
-		return nil, 0
-	}
-
-	parts := strings.Split(str, " ")
-	return parts, len(parts)
-}
-
-func removeFirst[T any](parts []T, count int) []T {
-	if partsLen := len(parts); partsLen == 0 || partsLen < count {
-		return parts
-	}
-	return parts[count:]
-}
-
-func isFlag(str string) bool {
-	return strings.HasPrefix(str, "--")
 }
 
 func parseFlag(str string) (InputFlag, error) {
