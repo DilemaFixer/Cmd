@@ -72,6 +72,43 @@ func TestCutInput_WithValidString_ReturnArrWithTwoItems(t *testing.T) {
 	}
 }
 
+func TestCutInput_WithаDoubleQuotes_ReturnArrWithOneItem(t *testing.T) {
+	expected := []string{
+		"value1 value2",
+	}
+	var values []string
+	var leng int
+
+	if values, leng = cutInput(`"value1 value2"`); len(values) != 1 && leng != 1 {
+		t.Fatalf("expected arr with one item and 1 leng for valid string, but have arr len:%d | returned len:%d", len(values), leng)
+	}
+
+	for i, value := range expected {
+		if values[i] != value {
+			t.Fatalf("expected item %s at position %d , but have %s", value, i, values[i])
+		}
+	}
+}
+
+func TestCutInput_WithSingleQuotes_ReturnArrWithOneItem(t *testing.T) {
+	expected := []string{
+		"value1 value2",
+	}
+
+	var values []string
+	var leng int
+
+	if values, leng = cutInput(`'value1 value2'`); len(values) != 1 && leng != 1 {
+		t.Fatalf("expected arr with one item and 1 leng for valid string, but have arr len:%d | returned len:%d", len(values), leng)
+	}
+
+	for i, value := range expected {
+		if values[i] != value {
+			t.Fatalf("expected item %s at position %d , but have %s", value, i, values[i])
+		}
+	}
+}
+
 // --- RemoveFirst ---
 
 func TestRemoveFirst_WithEmptySlice_ReturnsEmptySlice(t *testing.T) {
