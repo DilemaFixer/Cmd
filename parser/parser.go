@@ -16,6 +16,10 @@ func ParseInput(input string) (*ParsedInput, error) {
 		return nil, fmt.Errorf("Parsing err: empty or only whitespace in string")
 	}
 
+	if isFlag(parts[0]) {
+		return nil, fmt.Errorf("First word must be command , not flag %s", parts[0])
+	}
+
 	result := NewParserInput(parts[0])
 	parts = removeFirst(parts, 1)
 
@@ -23,17 +27,17 @@ func ParseInput(input string) (*ParsedInput, error) {
 		return result, nil
 	}
 
-	var canBeSubcommand bool = true
+	var flagsQueueStarted bool = false
 	for _, str := range parts {
 		if isFlag(str) {
-			canBeSubcommand = false
+			flagsQueueStarted = true
 			flag, err := parseFlag(str)
 			if err != nil {
 				return nil, err
 			}
 			result.InputFlags = append(result.InputFlags, flag)
 		} else {
-			if !canBeSubcommand {
+			if flagsQueueStarted {
 				return nil, fmt.Errorf("Subcommand command %s can't go after flag", str)
 			}
 			result.Subcommands = append(result.Subcommands, str)
@@ -51,14 +55,24 @@ func parseFlag(str string) (InputFlag, error) {
 
 	str = strings.TrimPrefix(str, "--")
 	var flag InputFlag
+
 	if strings.Contains(str, "=") {
-		strParts := strings.Split(str, "=")
-		if strings.TrimSpace(strParts[1]) == "" {
-			return flag, fmt.Errorf("Empty seter for %s", strParts[1])
+		strParts := strings.SplitN(str, "=", 2)
+		name := strings.TrimSpace(strParts[0])
+		value := strings.TrimSpace(strParts[1])
+
+		if value == "" {
+			return flag, fmt.Errorf("Empty setter for %s", name)
 		}
+
+		if (strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"")) ||
+			(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
+			value = value[1 : len(value)-1]
+		}
+
 		flag = InputFlag{
-			Name:  strParts[0],
-			Value: strParts[1],
+			Name:  name,
+			Value: value,
 		}
 	} else {
 		flag = InputFlag{
@@ -66,5 +80,6 @@ func parseFlag(str string) (InputFlag, error) {
 			Value: "",
 		}
 	}
+
 	return flag, nil
 }
