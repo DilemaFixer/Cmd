@@ -14,7 +14,35 @@ func cutInput(str string) ([]string, int) {
 		return nil, 0
 	}
 
-	parts := strings.Split(str, " ")
+	var parts []string
+	var buf strings.Builder
+	inSingleQuotes := false
+	inDoubleQuotes := false
+
+	for _, r := range str {
+		switch r {
+		case ' ':
+			if inSingleQuotes || inDoubleQuotes {
+				buf.WriteRune(r)
+			} else {
+				if buf.Len() > 0 {
+					parts = append(parts, buf.String())
+					buf.Reset()
+				}
+			}
+		case '"':
+			inDoubleQuotes = !inDoubleQuotes
+		case '\'':
+			inSingleQuotes = !inSingleQuotes
+		default:
+			buf.WriteRune(r)
+		}
+	}
+
+	if buf.Len() > 0 {
+		parts = append(parts, buf.String())
+	}
+
 	return parts, len(parts)
 }
 
