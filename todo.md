@@ -1,0 +1,2 @@
+- extract errors to it's own file with err , text
+- extract expected error as constants in test
