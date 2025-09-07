@@ -122,7 +122,7 @@ func validateGroupOptions(options map[string]Option, context ctx.Context) error 
 	for _, option := range options {
 		var isExist bool
 		if isExist = context.IsFlagExist(option.Name); isExist && option.Required {
-			return fmt.Errorf("Routing error: Required %s flag not exist", option.Name)
+			return fmt.Errorf("Routing error: Required '%s' flag not exist", option.Name)
 		}
 
 		if err := optionTypeValidation(option, context); err != nil {
@@ -136,7 +136,7 @@ func (endPoint *EndPoint) validateGlobalOptions(context ctx.Context) error {
 	for _, option := range endPoint.options {
 		var isExist bool
 		if isExist = context.IsFlagExist(option.Name); !isExist && option.Required {
-			return fmt.Errorf("Routing error: Required %s flag not exist", option.Name)
+			return fmt.Errorf("Routing error: Required '%s' flag not exist", option.Name)
 		}
 
 		if err := optionTypeValidation(option, context); err != nil {

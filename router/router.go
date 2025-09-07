@@ -64,7 +64,7 @@ func (r *Router) BindAll() {
 func (r *Router) Route(context ctx.Context, itr *RoutingIterator) {
 	point, exist := r.points[itr.Get()]
 	if !exist {
-		r.errorHandler(fmt.Errorf("Routing error: try route to non-existent point"), context)
+		r.errorHandler(fmt.Errorf("Routing error: try route to non-existent point %s", itr.Get()), context)
 		return
 	}
 	itr.Next()
