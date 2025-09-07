@@ -67,7 +67,6 @@ func (cmd *CmdWrapper) Build() *CmdWrapper {
 }
 
 func (cmd *CmdWrapper) Register() {
-	fmt.Println(cmd.cmd)
 	cmd.router.AddPoint(cmd.cmd)
 }
 
