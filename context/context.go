@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	prs "github.com/DilemaFixer/Cmd/parser"
 )
@@ -33,6 +34,9 @@ func NewContext(input *prs.ParsedInput) *Context {
 }
 
 func (ctx *Context) IsFlagExist(name string) bool {
+	if strings.HasPrefix(name, "--") {
+		name = name[2:]
+	}
 	_, exists := ctx.flags[name]
 	return exists
 }
@@ -110,16 +114,13 @@ func (ctx *Context) GetValueAsFloat64(name string) (float64, error) {
 	return strconv.ParseFloat(value, 64)
 }
 
-func (ctx *Context) GetValueAsBool(name string) (bool, error) {
-	value, exists := ctx.flags[name]
+func (ctx *Context) GetValueAsBool(name string) bool {
+	_, exists := ctx.flags[name]
 	if !exists {
-		return false, errors.New("flag not found")
-	}
-	if value == "" {
-		return false, errors.New("flag has empty value")
+		return false
 	}
 
-	return strconv.ParseBool(value)
+	return true
 }
 
 func (ctx *Context) GetValueAsString(name string) (string, error) {
