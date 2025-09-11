@@ -52,3 +52,13 @@ func removeFirst[T any](parts []T, count int) []T {
 	}
 	return parts[count:]
 }
+
+func trimNonEmpty(ss []string) []string {
+	out := make([]string, 0, len(ss))
+	for _, s := range ss {
+		if t := strings.TrimSpace(s); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}

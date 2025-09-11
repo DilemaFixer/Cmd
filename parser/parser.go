@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -82,4 +83,62 @@ func parseFlag(str string) (InputFlag, error) {
 	}
 
 	return flag, nil
+}
+
+func ParseOSArgs() (*ParsedInput, error) {
+	if len(os.Args) < 2 {
+		return nil, fmt.Errorf("Parsing err: empty args")
+	}
+	return ParseArgs(os.Args[1:])
+}
+
+func ParseArgs(args []string) (*ParsedInput, error) {
+	parts := trimNonEmpty(args)
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("Parsing err: empty args")
+	}
+
+	first := parts[0]
+	if isFlag(first) {
+		return nil, fmt.Errorf("First word must be command , not flag %s", first)
+	}
+	if first == "--" {
+		return nil, fmt.Errorf("First word must be command , not flag --")
+	}
+
+	res := NewParserInput(first)
+
+	parts = parts[1:]
+	if len(parts) == 0 {
+		return res, nil
+	}
+
+	flagsStarted := false
+	for _, tok := range parts {
+		tok = strings.TrimSpace(tok)
+		if tok == "" {
+			continue
+		}
+		if tok == "--" {
+			return nil, fmt.Errorf("Invalid flag: --")
+		}
+
+		if isFlag(tok) {
+			flagsStarted = true
+			flag, err := parseFlag(tok)
+			if err != nil {
+				return nil, err
+			}
+			res.InputFlags = append(res.InputFlags, flag)
+			continue
+		}
+
+		// не флаг → это сабкоманда
+		if flagsStarted {
+			return nil, fmt.Errorf("Subcommand command %s can't go after flag", tok)
+		}
+		res.Subcommands = append(res.Subcommands, tok)
+	}
+
+	return res, nil
 }
