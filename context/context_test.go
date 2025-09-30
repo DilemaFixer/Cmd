@@ -195,19 +195,9 @@ func TestGetValueAsFloat32AndFloat64_ErrorsOnInvalid(t *testing.T) {
 
 func TestGetValueAsBool_ParsesCorrectly(t *testing.T) {
 	ctx := NewContext(makeParserInput())
-	val, err := ctx.GetValueAsBool("enabled")
-	if err != nil || val != true {
-		t.Fatalf("expected true, got %v, err=%v", val, err)
-	}
-}
-
-func TestGetValueAsBool_ErrorsOnInvalidOrEmpty(t *testing.T) {
-	ctx := NewContext(makeBrokenParserInput())
-	if _, err := ctx.GetValueAsBool("empty"); err == nil {
-		t.Fatalf("expected error for empty flag")
-	}
-	if _, err := ctx.GetValueAsBool("badBool"); err == nil {
-		t.Fatalf("expected error for invalid bool")
+	val := ctx.GetValueAsBool("enabled")
+	if val != true {
+		t.Fatalf("expected true, got %v", val)
 	}
 }
 
