@@ -1,4 +1,4 @@
-# Cmd
+# Cmd - Type-Safe Go CLI Library
 
 A powerful and type-safe Go library for building command-line interfaces with hierarchical commands, option groups, and automatic argument parsing and validation.
 
@@ -92,12 +92,16 @@ parsedInput, err := p.ParseArgs(args)
 ```go
 router := rtr.NewRouter()
 
-// Single endpoint
 router.Endpoint("version").
     Description("Show version information").
     BoolOption("short").
     Handler(versionHandler).
     Register()
+```
+
+Usage:
+```bash
+myapp version --short
 ```
 
 ### Nested Commands
@@ -120,6 +124,12 @@ router.NewCmd("docker").
             Build().
         Build().
     Register()
+```
+
+Usage:
+```bash
+myapp docker container run --image=nginx --name=web --port=80 --detach
+myapp docker container stop --container=web --force
 ```
 
 ## Option Types
@@ -178,7 +188,7 @@ router.Endpoint("backup").
     Register()
 ```
 
-**Usage:**
+Usage:
 ```bash
 # Valid - only one group active
 myapp backup --local --path=/backup --compress
@@ -212,7 +222,7 @@ router.Endpoint("deploy").
     Register()
 ```
 
-**Usage:**
+Usage:
 ```bash
 # Can use both groups together
 myapp deploy --environment=prod --resources --memory=512 --cpu=2 --monitoring --metrics --logging
@@ -234,6 +244,8 @@ func handler(ctx ctx.Context) error {
     if ctx.IsFlagHaveValue("host") {
         // Flag has non-empty value
     }
+    
+    return nil
 }
 ```
 
@@ -315,29 +327,114 @@ router.CustomErrorHandler(func(err error, ctx ctx.Context) {
 - **Conflicting groups**: `"group requires solitude"`
 - **Unknown commands**: `"Point with name 'unknown' not found"`
 
+## Real-World Examples
+
+### Example 1: File Manager
+```go
+router.NewCmd("file").
+    Endpoint("copy").
+    RequiredString("source").
+    RequiredString("destination").
+    IntOption("buffer-size").
+    IntOption("threads").
+    BoolOption("verify").
+    BoolOption("overwrite").
+    FloatOption("throttle").
+    Handler(fileCopyHandler).
+    Build().
+    Endpoint("compress").
+    RequiredString("input").
+    RequiredString("output").
+    RequiredInt("level").
+    IntOption("threads").
+    BoolOption("recursive").
+    StringOption("format").
+    Handler(fileCompressHandler).
+    Build().
+    Register()
+```
+
+Usage:
+```bash
+myapp file copy --source=/home/user/file.txt --destination=/backup/ --buffer-size=8192 --verify
+myapp file compress --input=/data/logs --output=/compressed.tar.gz --level=9 --threads=4
+```
+
+### Example 2: Database Migration Tool
+```go
+router.NewCmd("db").
+    NewSub("migrate").
+    Endpoint("up").
+    IntOption("steps").
+    BoolOption("dry-run").
+    BoolOption("verbose").
+    Handler(migrateUpHandler).
+    Build().
+    Endpoint("down").
+    RequiredInt("steps").
+    BoolOption("dry-run").
+    BoolOption("force").
+    Handler(migrateDownHandler).
+    Build().
+    Build().
+    Register()
+```
+
+Usage:
+```bash
+myapp db migrate up --steps=3 --dry-run
+myapp db migrate down --steps=2 --force
+```
+
+### Example 3: Deployment with Option Groups
+```go
+router.Endpoint("deploy").
+    RequiredString("environment").
+    ExclusiveGroup("docker", "--docker").
+    RequiredString("image").
+    StringOption("registry").
+    BoolOption("build").
+    EndGroup().
+    ExclusiveGroup("kubernetes", "--kubernetes").
+    RequiredString("namespace").
+    IntOption("replicas").
+    BoolOption("wait").
+    EndGroup().
+    Group("resources", "--resources").
+    IntOption("memory").
+    IntOption("cpu").
+    EndGroup().
+    SetGroupsCanBeIgnored(false).
+    Handler(deployHandler).
+    Register()
+```
+
+Usage:
+```bash
+myapp deploy --environment=prod --docker --image=myapp:latest --resources --memory=1024 --cpu=4
+myapp deploy --environment=staging --kubernetes --namespace=staging --replicas=3 --resources --memory=512 --cpu=2
+```
+
 ## Method Chaining
 
 The fluent API allows clean command definitions:
 
 ```go
-router.NewCmd("service").              // Returns *CmdWrapper
+router.NewCmd("service").
     Description("Service management").
-    
-    NewSub("database").                // Returns *CmdWrapper  
-        Endpoint("migrate").           // Returns *EndPointWrapper
-            Description("Run migrations").
-            RequiredString("direction").
-            BoolOption("dry-run").
-            
-            Group("connection", "--db").   // Returns *EndPointGroupWrapper
-                RequiredString("host").
-                IntOption("port").
-            EndGroup().                    // Returns *EndPointWrapper
-            
-            Handler(migrateHandler).
-            Build().                       // Returns parent *CmdWrapper
-        Build().                           // Returns grandparent *CmdWrapper  
-    Register()                             // Registers with router
+    NewSub("database").
+    Endpoint("migrate").
+    Description("Run migrations").
+    RequiredString("direction").
+    BoolOption("dry-run").
+    Group("connection", "--db").
+    RequiredString("host").
+    IntOption("port").
+    EndGroup().
+    Handler(migrateHandler).
+    Build().
+    Build().
+    Register()
 ```
 
 ## Data Structures
@@ -358,16 +455,6 @@ type InputFlag struct {
     Value string    // Flag value (empty for boolean flags)
 }
 ```
-
-## Examples
-
-See the `example/` directory for complete working examples:
-
-- **HTTPServerManager**: Basic server management with simple options
-- **DatabaseMigrationTool**: Complex nested commands for database operations  
-- **DeploymentTool**: Advanced option groups for deployment scenarios
-- **FileManager**: Type validation and custom error handling
-- **SimpleTestFunctionCall**: Minimal working example
 
 ## Error Handling Best Practices
 
@@ -395,7 +482,3 @@ func handler(ctx ctx.Context) error {
     return nil
 }
 ```
-
-## License
-
-This project is licensed under the MIT License.
